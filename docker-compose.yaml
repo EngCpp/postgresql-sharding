@@ -1,0 +1,71 @@
+version: "3"
+services:
+  pg_master:
+    image: postgres:15.4
+    hostname: pg_master
+    ports:
+      - "5432:5432"
+    volumes:
+      - pg_master_data:/var/lib/postgresql/data
+      - ./scripts/init-master.sh:/docker-entrypoint-initdb.d/init-master.sh
+    environment:
+      - POSTGRES_DB=${DB_NAME}
+      - POSTGRES_USER=${DB_USERNAME}
+      - POSTGRES_PASSWORD=${DB_PASSWORD}
+    depends_on:
+      - pg_shard_1
+      - pg_shard_2
+      - pg_shard_3      
+      
+  pg_shard_1:
+    image: postgres:15.4
+    hostname: pg_shard_1
+    ports:
+      - "15432:5432"
+    volumes:
+      - pg_shard1_data:/var/lib/postgresql/data
+      - ./scripts/init-shard1.sh:/docker-entrypoint-initdb.d/init-shard1.sh
+    environment:
+      - POSTGRES_DB=${DB_NAME}
+      - POSTGRES_USER=${DB_USERNAME}
+      - POSTGRES_PASSWORD=${DB_PASSWORD}
+      - POSTGRES_HOST_AUTH_METHOD=md5
+
+  pg_shard_2:
+    image: postgres:15.4
+    hostname: pg_shard_2
+    ports:
+      - "25432:5432"
+    volumes:
+      - pg_shard2_data:/var/lib/postgresql/data      
+      - ./scripts/init-shard2.sh:/docker-entrypoint-initdb.d/init-shard2.sh
+    environment:
+      - POSTGRES_DB=${DB_NAME}
+      - POSTGRES_USER=${DB_USERNAME}
+      - POSTGRES_PASSWORD=${DB_PASSWORD}     
+      - POSTGRES_HOST_AUTH_METHOD=md5
+
+  pg_shard_3:
+    image: postgres:15.4
+    hostname: pg_shard_3
+    ports:
+      - "35432:5432"
+    volumes:
+      - pg_shard3_data:/var/lib/postgresql/data      
+      - ./scripts/init-shard3.sh:/docker-entrypoint-initdb.d/init-shard3.sh
+    environment:
+      - POSTGRES_DB=${DB_NAME}
+      - POSTGRES_USER=${DB_USERNAME}
+      - POSTGRES_PASSWORD=${DB_PASSWORD}
+      - POSTGRES_HOST_AUTH_METHOD=md5      
+
+volumes:
+  pg_master_data:
+      driver: local
+  pg_shard1_data:
+      driver: local
+  pg_shard2_data:
+      driver: local
+  pg_shard3_data:
+      driver: local            
+
